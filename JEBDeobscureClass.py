@@ -1,8 +1,8 @@
-﻿# -*- coding: utf-8 -*-  
+# -*- coding: utf-8 -*-  
 """
-Deobscure class name(use debug directives as source name) for PNF Software's JEB2.
+Deobscure class name(use debug directives as source name) for PNF Software's JEB.
 """
-__author__ = 'Ericli'
+__author__ = 'Ericli, NWMonster'
 
 from com.pnfsoftware.jeb.client.api import IScript
 from com.pnfsoftware.jeb.core import RuntimeProjectUtil
@@ -12,13 +12,13 @@ from com.pnfsoftware.jeb.core.actions import Actions, ActionContext, ActionComme
 from java.lang import Runnable
 
 
-class JEB2DeobscureClass(IScript):
+class JEBDeobscureClass(IScript):
     def run(self, ctx):
-        ctx.executeAsync("Running deobscure class ...", JEB2AutoRename(ctx))
+        ctx.executeAsync("Running deobscure class ...", JEBAutoRename(ctx))
         print('Done')
 
 
-class JEB2AutoRename(Runnable):
+class JEBAutoRename(Runnable):
     def __init__(self, ctx):
         self.ctx = ctx
 
@@ -45,13 +45,20 @@ class JEB2AutoRename(Runnable):
                     # print(clazz.getName(True), clazz)
                     sourceIndex = clazz.getSourceStringIndex()
                     clazzAddress = clazz.getAddress()
-                    if sourceIndex == -1 or '$' in clazzAddress:# Do not rename inner class
+                    if sourceIndex == -1:
                         # print('without have source field', clazz.getName(True))
                         continue
 
                     sourceStr = str(unit.getString(sourceIndex))
                     if '.java' in sourceStr:
                         sourceStr = sourceStr[:-5]
+
+                    if '$' in clazzAddress:
+                        oldName = clazzAddress.split('/')[-1].split('$')
+                        oldName.pop(0)
+                        oldName.insert(0, sourceStr)
+                        sourceStr = '$'.join(oldName)
+                        sourceStr = sourceStr[:-1]
 
                     # print(clazz.getName(True), sourceIndex, sourceStr, clazz)
                     if clazz.getName(True) != sourceStr:
